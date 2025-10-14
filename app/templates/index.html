@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MalDetect - Malware Detection</title>
+    <link rel="stylesheet" href="/static/css/styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>MalDetect</h1>
+        <p>Upload a file to scan for potential malware.</p>
+      </header>
+
+      <main>
+        <form id="scanForm">
+          <div class="dropzone" id="dropzone">
+            <img src="/static/icons/upload.svg" alt="upload" style="width:40px;height:40px;display:block;margin-bottom:8px;" />
+            Drag & drop a file here or use Choose File.
+          </div>
+          <input type="file" id="fileInput" name="file" required />
+          <select id="algo" name="algo" title="Choose model">
+            <option value="">Auto (use trained default)</option>
+            <option value="rf">Random Forest</option>
+            <option value="dt">Decision Tree</option>
+            <option value="svm">SVM (RBF)</option>
+            <option value="nb">Naive Bayes</option>
+            <option value="mlp">Neural Network (MLP)</option>
+          </select>
+          <button type="submit">Scan</button>
+        </form>
+        <div class="progress" id="progress" hidden><div></div></div>
+        <div id="result" class="card" hidden>
+          <h2>Scan Result</h2>
+          <div id="resultContent"></div>
+          <div id="resultIcon"></div>
+          <div class="probbar" id="probbar" title="Malicious probability"><div></div></div>
+        </div>
+        <div id="error" class="error" hidden></div>
+        <div class="history" id="history"></div>
+      </main>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+  </body>
+  </html>
+
+
