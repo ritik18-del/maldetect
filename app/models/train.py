@@ -14,7 +14,7 @@ from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
-from ..features.extractor import extract_features_from_bytes, get_feature_vector_length
+from app.features.extractor import extract_features_from_bytes, get_feature_vector_length
 
 
 DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "data"))

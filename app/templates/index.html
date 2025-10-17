@@ -3,32 +3,73 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>MalDetect - Malware Detection</title>
+    <title>MalDetect - Advanced Malware Detection System</title>
     <link rel="stylesheet" href="/static/css/styles.css" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   </head>
   <body>
     <div class="container">
-      <header>
-        <h1>MalDetect</h1>
-        <p>Upload a file to scan for potential malware.</p>
+      <!-- Navigation -->
+      <nav class="navbar">
+        <div class="nav-brand">
+          <i class="fas fa-shield-alt"></i>
+          <span>MalDetect</span>
+        </div>
+        <div class="nav-links">
+          <a href="/" class="nav-link active"><i class="fas fa-upload"></i> Single Scan</a>
+          <a href="/dashboard" class="nav-link"><i class="fas fa-chart-line"></i> Dashboard</a>
+          <a href="/bulk-scan" class="nav-link"><i class="fas fa-layer-group"></i> Bulk Scan</a>
+          <a href="/history" class="nav-link"><i class="fas fa-history"></i> History</a>
+        </div>
+      </nav>
+
+      <header class="page-header">
+        <h1><i class="fas fa-shield-virus"></i> Malware Detection System</h1>
+        <p>Advanced AI-powered malware detection using multiple machine learning algorithms</p>
+        <div class="header-stats">
+          <div class="stat-item">
+            <i class="fas fa-search"></i>
+            <span id="totalScans">0</span>
+            <label>Total Scans</label>
+          </div>
+          <div class="stat-item">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span id="threatsDetected">0</span>
+            <label>Threats Detected</label>
+          </div>
+          <div class="stat-item">
+            <i class="fas fa-brain"></i>
+            <span>5</span>
+            <label>ML Models</label>
+          </div>
+        </div>
       </header>
 
       <main>
         <form id="scanForm">
           <div class="dropzone" id="dropzone">
-            <img src="/static/icons/upload.svg" alt="upload" style="width:40px;height:40px;display:block;margin-bottom:8px;" />
-            Drag & drop a file here or use Choose File.
+            <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: #0ea5e9; margin-bottom: 1rem;"></i>
+            <h3>Drag & Drop File Here</h3>
+            <p>Or click to browse and select a file</p>
+            <input type="file" id="fileInput" name="file" required style="display: none;" />
           </div>
-          <input type="file" id="fileInput" name="file" required />
-          <select id="algo" name="algo" title="Choose model">
-            <option value="">Auto (use trained default)</option>
-            <option value="rf">Random Forest</option>
-            <option value="dt">Decision Tree</option>
-            <option value="svm">SVM (RBF)</option>
-            <option value="nb">Naive Bayes</option>
-            <option value="mlp">Neural Network (MLP)</option>
-          </select>
-          <button type="submit">Scan</button>
+          
+          <div class="form-row">
+            <label for="algo" style="color: #ffffff; font-weight: 600; min-width: 150px;">Algorithm:</label>
+            <select id="algo" name="algo" title="Choose model">
+              <option value="">Auto (Recommended)</option>
+              <option value="rf">Random Forest</option>
+              <option value="dt">Decision Tree</option>
+              <option value="svm">Support Vector Machine</option>
+              <option value="nb">Naive Bayes</option>
+              <option value="mlp">Neural Network (MLP)</option>
+            </select>
+          </div>
+          
+          <button type="submit">
+            <i class="fas fa-search"></i>
+            Scan File
+          </button>
         </form>
         <div class="progress" id="progress" hidden><div></div></div>
         <div id="result" class="card" hidden>

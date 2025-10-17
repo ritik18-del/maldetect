@@ -12,6 +12,107 @@ const probfill = probbar?.querySelector('div');
 const historyEl = document.getElementById('history');
 const resultIcon = document.getElementById('resultIcon');
 
+// Load dashboard stats on page load
+document.addEventListener('DOMContentLoaded', async function() {
+    await loadDashboardStats();
+    initializeDragAndDrop();
+});
+
+async function loadDashboardStats() {
+    try {
+        const response = await fetch('/api/dashboard/stats');
+        if (response.ok) {
+            const data = await response.json();
+            const stats = data.statistics;
+            
+            // Update header stats
+            document.getElementById('totalScans').textContent = stats.total_scans.toLocaleString();
+            document.getElementById('threatsDetected').textContent = stats.malicious_count.toLocaleString();
+            
+            // Animate counters
+            animateCounter('totalScans', stats.total_scans);
+            animateCounter('threatsDetected', stats.malicious_count);
+        }
+    } catch (error) {
+        console.error('Failed to load dashboard stats:', error);
+    }
+}
+
+function animateCounter(elementId, targetValue) {
+    const element = document.getElementById(elementId);
+    const startValue = 0;
+    const duration = 2000;
+    const startTime = performance.now();
+    
+    function updateCounter(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const currentValue = startValue + (targetValue - startValue) * easeOutCubic(progress);
+        
+        element.textContent = Math.floor(currentValue).toLocaleString();
+        
+        if (progress < 1) {
+            requestAnimationFrame(updateCounter);
+        }
+    }
+    
+    requestAnimationFrame(updateCounter);
+}
+
+function easeOutCubic(t) {
+    return 1 - Math.pow(1 - t, 3);
+}
+
+function initializeDragAndDrop() {
+    if (!dropzone) return;
+    
+    // Click to select file
+    dropzone.addEventListener('click', () => fileInput.click());
+    
+    // Drag and drop events
+    ['dragenter', 'dragover'].forEach(evt => {
+        dropzone.addEventListener(evt, (e) => {
+            e.preventDefault();
+            dropzone.classList.add('drag-over');
+        });
+    });
+    
+    ['dragleave', 'drop'].forEach(evt => {
+        dropzone.addEventListener(evt, (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('drag-over');
+        });
+    });
+    
+    dropzone.addEventListener('drop', (e) => {
+        const files = e.dataTransfer?.files;
+        if (files && files.length) {
+            fileInput.files = files;
+            updateDropzoneDisplay(files[0]);
+        }
+    });
+    
+    // File input change
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files.length) {
+            updateDropzoneDisplay(e.target.files[0]);
+        }
+    });
+}
+
+function updateDropzoneDisplay(file) {
+    const dropzoneText = dropzone.querySelector('h3');
+    const dropzoneSubtext = dropzone.querySelector('p');
+    
+    if (file) {
+        dropzoneText.textContent = file.name;
+        dropzoneSubtext.textContent = formatBytes(file.size);
+    } else {
+        dropzoneText.textContent = 'Drag & Drop File Here';
+        dropzoneSubtext.textContent = 'Or click to browse and select a file';
+    }
+}
+
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
   errorBox.hidden = true;
@@ -92,15 +193,7 @@ function setProgress(val){
   if(val === 0 || val === 100) setTimeout(()=>{ progressEl.hidden = true; }, 400);
 }
 
-// drag & drop
-if (dropzone) {
-  ;['dragenter','dragover'].forEach(evt => dropzone.addEventListener(evt, (e)=>{ e.preventDefault(); dropzone.style.background='#0b1220'; }));
-  ;['dragleave','drop'].forEach(evt => dropzone.addEventListener(evt, (e)=>{ e.preventDefault(); dropzone.style.background='transparent'; }));
-  dropzone.addEventListener('drop', (e)=>{
-    const files = e.dataTransfer?.files;
-    if (files && files.length) fileInput.files = files;
-  });
-}
+// Drag & drop functionality moved to initializeDragAndDrop()
 
 function appendHistory(item){
   if(!historyEl) return;
