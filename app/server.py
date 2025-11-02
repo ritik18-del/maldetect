@@ -62,8 +62,9 @@ def scan_file():
     try:
         feature_vector, feature_names = extract_features_from_bytes(file_bytes)
         algo = request.form.get("algo") or request.args.get("algo")
+        threshold = float(request.form.get("threshold") or request.args.get("threshold") or 0.5)
         proba_malicious, model_info = ensure_model_and_predict_proba(feature_vector, algo=algo)
-        label = "malicious" if proba_malicious >= 0.5 else "benign"
+        label = "malicious" if proba_malicious >= threshold else "benign"
         
         # Basic stats from feature vector indices
         entropy = float(feature_vector[256])
@@ -121,6 +122,22 @@ def dashboard():
 @app.get("/bulk-scan")
 def bulk_scan_page():
     return render_template("bulk-scan.html")
+
+
+# Pages: History, Reports, API Docs
+@app.get("/history")
+def history_page():
+    return render_template("history.html")
+
+
+@app.get("/reports")
+def reports_page():
+    return render_template("reports.html")
+
+
+@app.get("/api/docs")
+def api_docs_page():
+    return render_template("api-docs.html")
 
 
 @app.get("/api/dashboard/stats")

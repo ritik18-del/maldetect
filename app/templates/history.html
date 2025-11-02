@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MalDetect - Scan History</title>
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .container{max-width:1200px;margin:0 auto;padding:24px}
+        .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+        .table{width:100%;border-collapse:collapse}
+        .table th,.table td{padding:12px;border-bottom:1px solid #e5e7eb}
+        .badge{padding:4px 8px;border-radius:9999px;font-size:12px}
+        .badge.malicious{background:#fee2e2;color:#b91c1c}
+        .badge.benign{background:#dcfce7;color:#166534}
+    </style>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => { load(1); });
+    async function load(page){
+        const res = await fetch(`/api/scans?page=${page}&per_page=50`);
+        const json = await res.json();
+        const tbody = document.getElementById('rows');
+        tbody.innerHTML = '';
+        (json.scans||[]).forEach(s=>{
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${s.scan_timestamp || '-'}</td>
+                <td>${escapeHtml(s.filename)}</td>
+                <td>${s.algorithm?.toUpperCase?.() || '-'}</td>
+                <td><span class="badge ${s.label}">${s.label}</span></td>
+                <td>${(s.confidence*100).toFixed(1)}%</td>
+                <td>${formatBytes(s.file_size)}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+        document.getElementById('total').textContent = json.total ?? 0;
+    }
+    function escapeHtml(s){return String(s).replace(/[&<>"']+/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));}
+    function formatBytes(n){const b=Number(n)||0;if(b<1024) return `${b} B`;const u=['KB','MB','GB'];let i=-1,v=b;do{v/=1024;i++;}while(v>=1024&&i<u.length-1);return `${v.toFixed(2)} ${u[i]}`}
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-history"></i> Scan History</h1>
+            <div>Total: <span id="total">0</span></div>
+        </div>
+        <div class="card">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Filename</th>
+                        <th>Algorithm</th>
+                        <th>Result</th>
+                        <th>Confidence</th>
+                        <th>Size</th>
+                    </tr>
+                </thead>
+                <tbody id="rows"></tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
+
+

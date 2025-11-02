@@ -34,6 +34,8 @@ def _load_or_create_model(algo: Optional[str] = None):
 
 
 def ensure_model_and_predict_proba(feature_vector: np.ndarray, algo: Optional[str] = None) -> Tuple[float, Dict[str, str]]:
+    model_path = _resolve_model_path(algo)
+    has_file = os.path.exists(model_path)
     model = _load_or_create_model(algo)
     if not hasattr(model, "classes_"):
         # If model isn't trained, build a trivial fallback to avoid runtime error
@@ -45,7 +47,13 @@ def ensure_model_and_predict_proba(feature_vector: np.ndarray, algo: Optional[st
     # Assume class 1 is malicious if present, else take last column
     malicious_index = int(np.where(model.classes_ == 1)[0][0]) if 1 in model.classes_ else -1
     p_mal = float(proba[malicious_index])
-    info = {"name": type(model).__name__, "version": "1.0", "algo": algo or "auto"}
+    info = {
+        "name": type(model).__name__,
+        "version": "1.0",
+        "algo": algo or "auto",
+        "model_path": model_path if has_file else None,
+        "source": "file" if has_file else "fallback",
+    }
     return p_mal, info
 
 

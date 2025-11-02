@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MalDetect - API Documentation</title>
+  <link rel="stylesheet" href="/static/css/dashboard.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    .container{max-width:1100px;margin:0 auto;padding:24px;color:#e6edf3}
+    code{background:#0b1220;color:#e6edf3;padding:2px 6px;border-radius:4px;border:1px solid #334155}
+    pre{background:#0b1220;color:#e6edf3;padding:12px;border-radius:8px;overflow:auto;border:1px solid #334155}
+    .endpoint{margin:18px 0;border:1px solid #334155;border-radius:8px;background:rgba(255,255,255,0.04)}
+    .summary{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;cursor:pointer}
+    .summary:hover{background:rgba(255,255,255,0.05)}
+    .method{font-weight:700;margin-right:8px}
+    .get{color:#86efac}.post{color:#93c5fd}
+    .body{padding:0 16px 16px 16px;display:none}
+    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .input{padding:8px 10px;border:1px solid #334155;border-radius:6px;background:#0b1220;color:#e6edf3}
+    .btn{padding:8px 12px;border:1px solid #334155;border-radius:6px;background:#111827;color:#e6edf3;cursor:pointer}
+    .btn.primary{background:#0ea5e9;color:#fff;border-color:#0ea5e9}
+    .right{display:flex;gap:8px;align-items:center}
+  </style>
+  <script>
+    function toggle(el){ const body = el.nextElementSibling; body.style.display = body.style.display==='block'?'none':'block'; }
+    function copy(text){ navigator.clipboard.writeText(text); const n=document.createElement('div'); n.textContent='Copied'; n.style.cssText='position:fixed;top:12px;right:12px;background:#111;color:#fff;padding:6px 10px;border-radius:6px;opacity:.9'; document.body.appendChild(n); setTimeout(()=>document.body.removeChild(n),900); }
+
+    async function tryHealth(){ const r=await fetch('/api/health'); setJson('out-health', await r.json()); }
+    async function tryScans(){ const page=Number(document.getElementById('in-page').value)||1; const per=Number(document.getElementById('in-per').value)||10; const r=await fetch(`/api/scans?page=${page}&per_page=${per}`); setJson('out-scans', await r.json()); }
+    async function tryScan(){ const f=document.getElementById('in-file').files?.[0]; if(!f){ alert('Choose a file'); return; } const algo=document.getElementById('in-algo').value; const fd=new FormData(); fd.append('file', f); if(algo) fd.append('algo', algo); const r=await fetch('/api/scan',{method:'POST', body:fd}); setJson('out-scan', await r.json()); }
+    async function tryExport(fmt){ const r=await fetch(`/api/export/scans?format=${fmt}&limit=5`); if(fmt==='json') setJson('out-export', await r.json()); else setText('out-export', await r.text()); }
+    async function tryBulk(){
+      const files = document.getElementById('in-files').files;
+      if(!files || !files.length){ alert('Choose files'); return; }
+      const algo = document.getElementById('in-bulk-algo').value;
+      const fd = new FormData();
+      for(const f of files) fd.append('files', f);
+      if(algo) fd.append('algo', algo);
+      const r = await fetch('/api/bulk-scan', { method:'POST', body:fd });
+      setJson('out-bulk', await r.json());
+    }
+    function setJson(id, obj){ const el=document.getElementById(id); el.textContent = JSON.stringify(obj, null, 2); }
+    function setText(id, t){ const el=document.getElementById(id); el.textContent = t; }
+  </script>
+</head>
+<body>
+  <div class="container">
+    <h1><i class="fas fa-code"></i> API Documentation</h1>
+
+    <div class="endpoint">
+      <div class="summary" onclick="toggle(this)">
+        <div><span class="method get">GET</span> <code>/api/health</code></div>
+        <div class="right"><button class="btn" onclick="event.stopPropagation(); copy('/api/health')"><i class="fas fa-copy"></i></button></div>
+      </div>
+      <div class="body">
+        <div class="row" style="margin:8px 0"><button class="btn primary" onclick="tryHealth()">Try it</button></div>
+        <pre id="out-health">{}</pre>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="summary" onclick="toggle(this)">
+        <div><span class="method post">POST</span> <code>/api/scan</code></div>
+        <div class="right"><button class="btn" onclick="event.stopPropagation(); copy('curl -X POST http://localhost:5000/api/scan -F "file=@/path/to/file"')"><i class="fas fa-copy"></i></button></div>
+      </div>
+      <div class="body">
+        <div class="row" style="margin:8px 0">
+          <input id="in-file" class="input" type="file" />
+          <select id="in-algo" class="input">
+            <option value="">algo: auto</option>
+            <option>rf</option><option>dt</option><option>svm</option><option>nb</option><option>mlp</option>
+          </select>
+          <button class="btn primary" onclick="tryScan()">Try it</button>
+        </div>
+        <pre id="out-scan">{}</pre>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="summary" onclick="toggle(this)">
+        <div><span class="method post">POST</span> <code>/api/bulk-scan</code></div>
+        <div class="right"><button class="btn" onclick="event.stopPropagation(); copy('/api/bulk-scan')"><i class="fas fa-copy"></i></button></div>
+      </div>
+      <div class="body">
+        <div class="row" style="margin:8px 0">
+          <input id="in-files" class="input" type="file" multiple />
+          <select id="in-bulk-algo" class="input">
+            <option value="">algo: auto</option>
+            <option>rf</option><option>dt</option><option>svm</option><option>nb</option><option>mlp</option>
+          </select>
+          <button class="btn primary" onclick="tryBulk()">Try it</button>
+        </div>
+        <pre id="out-bulk">{}</pre>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="summary" onclick="toggle(this)">
+        <div><span class="method get">GET</span> <code>/api/scans</code></div>
+        <div class="right"><button class="btn" onclick="event.stopPropagation(); copy('/api/scans?page=1&per_page=50')"><i class="fas fa-copy"></i></button></div>
+      </div>
+      <div class="body">
+        <div class="row" style="margin:8px 0">
+          <input id="in-page" class="input" type="number" min="1" value="1"/>
+          <input id="in-per" class="input" type="number" min="1" max="200" value="10"/>
+          <button class="btn primary" onclick="tryScans()">Try it</button>
+        </div>
+        <pre id="out-scans">{}</pre>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="summary" onclick="toggle(this)">
+        <div><span class="method get">GET</span> <code>/api/scans/&lt;id&gt;</code></div>
+      </div>
+      <div class="body"><p>Returns details for a single scan record.</p></div>
+    </div>
+
+    <div class="endpoint">
+      <div class="summary" onclick="toggle(this)">
+        <div><span class="method get">GET</span> <code>/api/export/scans?format=csv|json&limit=1000</code></div>
+      </div>
+      <div class="body">
+        <div class="row" style="margin:8px 0">
+          <button class="btn" onclick="tryExport('csv')">Try CSV</button>
+          <button class="btn" onclick="tryExport('json')">Try JSON</button>
+        </div>
+        <pre id="out-export"></pre>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+
+
